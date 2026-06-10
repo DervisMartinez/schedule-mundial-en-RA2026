@@ -158,6 +158,8 @@ const parseICS = (icsString) => {
         currentEvent.start = line.replace('DTSTART:', '');
       } else if (line.startsWith('SUMMARY:')) {
         currentEvent.summary = line.replace('SUMMARY:', '');
+      } else if (line.startsWith('URL:')) {
+        currentEvent.url = line.replace('URL:', '');
       }
     }
   }
@@ -220,7 +222,8 @@ const parseICS = (icsString) => {
       awayTeam: { name: awayName, flag: getFlagUrl(awayName) },
       homeScore: homeScore,
       awayScore: awayScore,
-      rawDate: dateObj.toISOString()
+      rawDate: dateObj.toISOString(),
+      matchUrl: ev.url || '#'
     };
   }).filter(Boolean); // Filtra partidos corruptos
 };
@@ -365,34 +368,6 @@ export const fetchStandings = async (dateStr = null) => {
   }
 
   return baseGroups;
-};
-
-// ===== LÓGICA PARA NOTICIAS DE WORDPRESS =====
-const WP_TAG_ID = 123; // ¡IMPORTANTE! Reemplaza '123' con el ID real de tu etiqueta
-
-export const fetchNews = async () => {
-  try {
-    // Usamos _embed para incluir la imagen destacada y per_page para limitar a 3
-    const response = await fetch(`https://radioamerica.com.ve/wp-json/wp/v2/posts?tags=${WP_TAG_ID}&per_page=3&_embed`);
-    if (!response.ok) {
-      throw new Error('La respuesta de WordPress no fue exitosa');
-    }
-    const posts = await response.json();
-
-    return posts.map(post => {
-      const imageUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=200&h=150&auto=format&fit=crop';
-      
-      return {
-        id: post.id,
-        title: post.title.rendered,
-        link: post.link,
-        imageUrl: imageUrl,
-      };
-    });
-  } catch (error) {
-    console.error("Error al obtener las noticias de WordPress:", error);
-    return []; // Devolvemos un array vacío para no romper la interfaz
-  }
 };
 
 // ===== TEXTO CRUDO DEL CALENDARIO OFICIAL DE FOTMOB (.ICS) =====

@@ -94,7 +94,7 @@ export default function MatchFeed() {
                         </div>
                       </div>
                       <div className="mt-4 pt-4 border-t border-surface-variant flex justify-between items-center">
-                        <span className="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">Ver Detalles</span>
+                        <a href={match.matchUrl} target="_blank" rel="noopener noreferrer" className="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">Ver Detalles</a>
                         <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>sports_soccer</span>
                       </div>
                     </div>

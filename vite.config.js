@@ -12,16 +12,23 @@ export default defineConfig({
       manifest: {
         name: 'Mundial 2026 Radio América',
         short_name: 'Mundial 2026',
+        start_url: '/',
         description: 'Calendario, resultados y transmisión del Mundial 2026.',
         theme_color: '#9f1b20',
         background_color: '#fcf8f9',
         display: 'standalone',
         icons: [
           {
-            src: 'LOGORADIO.png',
-            sizes: '192x192 512x512',
+            src: '/LOGORADIO.png', // Asegúrate que este archivo esté en la carpeta `public`
+            sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/LOGORADIO.png', // Y que tenga una resolución de al menos 512x512
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any' // o 'maskable' si el ícono está preparado para ello
           }
         ]
       }

@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { fetchStandings, fetchNews } from './api';
+import { fetchStandings } from './api';
 
 export default function RightColumn() {
   const [groupsData, setGroupsData] = useState([]);
-  const [news, setNews] = useState([]);
-  const [loadingNews, setLoadingNews] = useState(true);
 
   useEffect(() => {
     fetchStandings().then(data => setGroupsData(data));
-
-    fetchNews().then(data => {
-      setNews(data);
-      setLoadingNews(false);
-    });
   }, []);
 
   return (
@@ -59,41 +52,6 @@ export default function RightColumn() {
           </table>
         </div>
       ))}
-
-      {/* Noticias Destacadas */}
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col shadow-sm">
-        <div className="bg-surface-dim px-4 py-3 border-b border-outline-variant flex justify-between items-center">
-          <h4 className="font-headline-md text-[16px] leading-[20px] font-bold uppercase text-on-surface">NOTICIAS DESTACADAS</h4>
-        </div>
-        {loadingNews ? (
-          <div className="p-4 text-center text-on-surface-variant">Cargando noticias...</div>
-        ) : news.length > 0 ? (
-          news.map((item, index) => (
-            <a
-              key={item.id}
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`p-4 hover:bg-surface-container-low transition-colors cursor-pointer group ${index !== news.length - 1 ? 'border-b border-surface-variant' : ''}`}
-            >
-              <div className="flex gap-4">
-                <div className="w-24 h-16 bg-surface-variant rounded-md overflow-hidden shrink-0">
-                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
-                </div>
-                <div className="flex flex-col justify-center py-1">
-                  <h5
-                    className="font-headline-md text-[14px] leading-tight text-on-surface group-hover:text-primary transition-colors"
-                    dangerouslySetInnerHTML={{ __html: item.title }}
-                  ></h5>
-                  <span className="font-label-caps text-[10px] text-primary uppercase mt-1">Radio América</span>
-                </div>
-              </div>
-            </a>
-          ))
-        ) : (
-          <div className="p-4 text-center text-on-surface-variant">No hay noticias disponibles.</div>
-        )}
-      </div>
     </div>
   );
 }
