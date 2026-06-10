@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { fetchStandings } from './api';
+import { fetchStandings, fetchNews } from './api';
 
 export default function RightColumn() {
   const [groupsData, setGroupsData] = useState([]);
+  const [news, setNews] = useState([]);
+  const [loadingNews, setLoadingNews] = useState(true);
 
   useEffect(() => {
     fetchStandings().then(data => setGroupsData(data));
+
+    fetchNews().then(data => {
+      setNews(data);
+      setLoadingNews(false);
+    });
   }, []);
 
   return (
@@ -58,43 +65,34 @@ export default function RightColumn() {
         <div className="bg-surface-dim px-4 py-3 border-b border-outline-variant flex justify-between items-center">
           <h4 className="font-headline-md text-[16px] leading-[20px] font-bold uppercase text-on-surface">NOTICIAS DESTACADAS</h4>
         </div>
-        <div className="flex flex-col">
-          <div className="p-4 border-b border-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
-            <div className="flex gap-4">
-              <div className="w-24 h-16 bg-surface-variant rounded-md overflow-hidden shrink-0">
-                <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=200&h=150&auto=format&fit=crop" alt="Estadio" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+        {loadingNews ? (
+          <div className="p-4 text-center text-on-surface-variant">Cargando noticias...</div>
+        ) : news.length > 0 ? (
+          news.map((item, index) => (
+            <a
+              key={item.id}
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-4 hover:bg-surface-container-low transition-colors cursor-pointer group ${index !== news.length - 1 ? 'border-b border-surface-variant' : ''}`}
+            >
+              <div className="flex gap-4">
+                <div className="w-24 h-16 bg-surface-variant rounded-md overflow-hidden shrink-0">
+                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                </div>
+                <div className="flex flex-col justify-center py-1">
+                  <h5
+                    className="font-headline-md text-[14px] leading-tight text-on-surface group-hover:text-primary transition-colors"
+                    dangerouslySetInnerHTML={{ __html: item.title }}
+                  ></h5>
+                  <span className="font-label-caps text-[10px] text-primary uppercase mt-1">Radio América</span>
+                </div>
               </div>
-              <div className="flex flex-col justify-between py-1">
-                <h5 className="font-headline-md text-[14px] leading-tight text-on-surface group-hover:text-primary transition-colors">Nuevas sedes confirmadas para la gran final del Mundial</h5>
-                <span className="font-label-caps text-[10px] text-primary uppercase mt-1">Radio América</span>
-              </div>
-            </div>
-          </div>
-          {/* News Item 2 */}
-          <div className="p-4 border-b border-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
-            <div className="flex gap-4">
-              <div className="w-24 h-16 bg-surface-variant rounded-md overflow-hidden shrink-0">
-                <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=200&h=150&auto=format&fit=crop" alt="Entrenamiento" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
-              </div>
-              <div className="flex flex-col justify-between py-1">
-                <h5 className="font-headline-md text-[14px] leading-tight text-on-surface group-hover:text-primary transition-colors">Vinotinto inicia preparación intensa en el predio nacional</h5>
-                <span className="font-label-caps text-[10px] text-secondary uppercase mt-1">WordPress</span>
-              </div>
-            </div>
-          </div>
-          {/* News Item 3 */}
-          <div className="p-4 hover:bg-surface-container-low transition-colors cursor-pointer group">
-            <div className="flex gap-4">
-              <div className="w-24 h-16 bg-surface-variant rounded-md overflow-hidden shrink-0">
-                <img src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=200&h=150&auto=format&fit=crop" alt="Balón" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
-              </div>
-              <div className="flex flex-col justify-between py-1">
-                <h5 className="font-headline-md text-[14px] leading-tight text-on-surface group-hover:text-primary transition-colors">Análisis: Los favoritos para liderar el Grupo A</h5>
-                <span className="font-label-caps text-[10px] text-primary uppercase mt-1">Radio América</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            </a>
+          ))
+        ) : (
+          <div className="p-4 text-center text-on-surface-variant">No hay noticias disponibles.</div>
+        )}
       </div>
     </div>
   );
