@@ -16,7 +16,7 @@ function App() {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play();
+      audioRef.current.play().catch(error => console.error("Error al reproducir la radio:", error));
     }
     setIsPlaying(!isPlaying);
   };
@@ -78,7 +78,7 @@ function App() {
               <span className="font-label-caps text-[10px] opacity-80">90.9 FM</span>
             </div>
             <div className="flex items-center gap-4 flex-1 max-w-md">
-              <audio ref={audioRef} src="https://transmision.radioamerica.com.ve:8087/" preload="none"></audio>
+              <audio ref={audioRef} src="https://transmision.radioamerica.com.ve:8087/RA909FM" preload="none"></audio>
               <button onClick={togglePlay} className="w-10 h-10 md:w-12 md:h-12 bg-white text-primary rounded-full flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-md">
                 <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   {isPlaying ? 'pause' : 'play_arrow'}

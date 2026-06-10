@@ -72,23 +72,23 @@ export default function MatchFeed() {
                       <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 rounded-bl-lg font-stat-value text-stat-value text-xs">
                         {match.time}
                       </div>
-                      <div className="font-label-caps text-label-caps text-on-surface-variant mb-4">{match.stadium}</div>
+                      <div className="font-label-caps text-label-caps text-on-surface-variant mb-4 pr-12 truncate">{match.stadium}</div>
                       <div className="flex flex-col gap-3">
                         <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 md:w-10 md:h-10 bg-surface-variant rounded-full overflow-hidden shadow-sm">
+                          <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
+                            <div className="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-surface-variant rounded-full overflow-hidden shadow-sm">
                               <img alt={`${match.homeTeam.name} Flag`} className="w-full h-full object-cover" src={match.homeTeam.flag} />
                             </div>
-                            <span className="font-headline-md text-headline-lg-mobile md:text-headline-lg text-on-surface">{match.homeTeam.name}</span>
+                            <span className="font-headline-md text-headline-lg-mobile md:text-headline-lg text-on-surface truncate">{match.homeTeam.name}</span>
                           </div>
                           <span className="font-display-score text-[32px] md:text-display-score leading-none text-primary">{match.homeScore ?? '-'}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 md:w-10 md:h-10 bg-surface-variant rounded-full overflow-hidden shadow-sm">
+                          <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
+                            <div className="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-surface-variant rounded-full overflow-hidden shadow-sm">
                               <img alt={`${match.awayTeam.name} Flag`} className="w-full h-full object-cover" src={match.awayTeam.flag} />
                             </div>
-                            <span className="font-headline-md text-headline-lg-mobile md:text-headline-lg text-on-surface-variant">{match.awayTeam.name}</span>
+                            <span className="font-headline-md text-headline-lg-mobile md:text-headline-lg text-on-surface-variant truncate">{match.awayTeam.name}</span>
                           </div>
                           <span className="font-display-score text-[32px] md:text-display-score leading-none text-on-surface-variant">{match.awayScore ?? '-'}</span>
                         </div>
