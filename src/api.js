@@ -20,7 +20,7 @@ const getFlagUrl = (teamName) => {
 };
 
 // Función que convierte el .ICS crudo a la estructura de nuestra aplicación
-const parseICS = (icsString) => {
+const parseICS = (icsString, overrides = {}) => {
   const events = [];
   const lines = icsString.split('\n');
   let currentEvent = null;
@@ -40,6 +40,8 @@ const parseICS = (icsString) => {
         currentEvent.start = line.replace('DTSTART:', '');
       } else if (line.startsWith('SUMMARY:')) {
         currentEvent.summary = line.replace('SUMMARY:', '');
+      } else if (line.startsWith('URL:')) {
+        currentEvent.url = line.replace('URL:', '');
       }
     }
   }
@@ -95,27 +97,64 @@ const parseICS = (icsString) => {
     // Si por alguna razón la fecha falló, abortamos para no causar pantallazo blanco
     if (isNaN(dateObj.getTime())) return null;
 
+    const matchKey = `${homeName}-${awayName}`.replace(/\s+/g, '-').toLowerCase();
+    
+    let finalHomeScore = homeScore;
+    let finalAwayScore = awayScore;
+    let finalUrl = ''; // Ya no usamos ev.url de FotMob
+    let status = 'NS';
+    let minute = '';
+    let finalHomeName = homeName;
+    let finalAwayName = awayName;
+
+    if (overrides[matchKey]) {
+      if (overrides[matchKey].homeScore !== undefined && overrides[matchKey].homeScore !== null) finalHomeScore = parseInt(overrides[matchKey].homeScore, 10);
+      if (overrides[matchKey].awayScore !== undefined && overrides[matchKey].awayScore !== null) finalAwayScore = parseInt(overrides[matchKey].awayScore, 10);
+      if (overrides[matchKey].matchUrl) finalUrl = overrides[matchKey].matchUrl;
+      if (overrides[matchKey].status) status = overrides[matchKey].status;
+      else if (overrides[matchKey].isLive) status = 'LIVE'; // Fallback para registros viejos
+      if (overrides[matchKey].minute !== undefined) minute = overrides[matchKey].minute;
+      
+      // Sobrescribir los nombres de los equipos si se establecieron en el admin
+      if (overrides[matchKey].homeTeamName) finalHomeName = overrides[matchKey].homeTeamName;
+      if (overrides[matchKey].awayTeamName) finalAwayName = overrides[matchKey].awayTeamName;
+    }
+    
+    const isLive = status === 'LIVE';
+
     return {
-      id: index + 1,
-      isLive: false,
-      status: 'NS', // Not Started
-      minute: 0,
+      id: matchKey, // Importante para que el frontend lo reconozca
+      isLive: isLive,
+      status: status, // NS, LIVE, FT
+      minute: minute,
       time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       group: groupName,
-      stadium: 'Sede por Definir',
-      homeTeam: { name: homeName, flag: getFlagUrl(homeName) },
-      awayTeam: { name: awayName, flag: getFlagUrl(awayName) },
-      homeScore: homeScore,
-      awayScore: awayScore,
-      rawDate: dateObj.toISOString()
+      stadium: 'Por Definir',
+      homeTeam: { name: finalHomeName, flag: getFlagUrl(finalHomeName) },
+      awayTeam: { name: finalAwayName, flag: getFlagUrl(finalAwayName) },
+      homeScore: finalHomeScore,
+      awayScore: finalAwayScore,
+      rawDate: dateObj.toISOString(),
+      matchUrl: finalUrl
     };
   }).filter(Boolean); // El filter() se asegura de remover cualquier "null" que haya crasheado
 };
 
+// Función inteligente que cruza el ICS con tu Base de Datos PHP
+const getCalendarData = async () => {
+  let overrides = {};
+  try {
+    // Intenta descargar los cambios de admin.php
+    const res = await fetch('/get_overrides.php');
+    if (res.ok) overrides = await res.json();
+  } catch (error) {
+    console.warn("No se pudo conectar a la DB manual, usando datos originales.");
+  }
+  return parseICS(rawICS, overrides);
+};
+
 export const fetchMatches = async () => {
-  // USAMOS EL CALENDARIO ICS DIRECTAMENTE
-  // Transformamos el string ICS provisto en objetos consumibles por la UI
-  const allMatches = parseICS(rawICS);
+  const allMatches = await getCalendarData();
   const now = new Date();
   const activeFixtures = allMatches.filter(m => new Date(m.rawDate) >= now);
   
@@ -123,8 +162,7 @@ export const fetchMatches = async () => {
 };
 
 export const fetchResults = async () => {
-  // BUSCAMOS LOS RESULTADOS HISTÓRICOS EN EL ICS
-  const allMatches = parseICS(rawICS);
+  const allMatches = await getCalendarData();
   const now = new Date();
   const pastMatches = allMatches.filter(m => new Date(m.rawDate) < now);
 

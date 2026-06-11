@@ -139,7 +139,7 @@ const getStadium = (home, away, summary) => {
 };
 
 // Función que parsea la estructura del Calendario ICS a un Arreglo plano para los componentes
-const parseICS = (icsString) => {
+const parseICS = (icsString, overrides = {}) => {
   const events = [];
   const lines = icsString.split('\n');
   let currentEvent = null;
@@ -158,6 +158,8 @@ const parseICS = (icsString) => {
         currentEvent.start = line.replace('DTSTART:', '');
       } else if (line.startsWith('SUMMARY:')) {
         currentEvent.summary = line.replace('SUMMARY:', '');
+      } else if (line.startsWith('URL:')) {
+        currentEvent.url = line.replace('URL:', '');
       } else if (line.startsWith('URL:')) {
         currentEvent.url = line.replace('URL:', '');
       }
@@ -190,6 +192,8 @@ const parseICS = (icsString) => {
     const homeName = findTeam(parts[0]);
     const awayName = findTeam(parts[1]);
 
+    const matchKey = `${homeName}-${awayName}`.replace(/\s+/g, '-').toLowerCase();
+
     let groupName = 'Fase de Grupos';
     if (summary.includes('Winner SF')) groupName = 'Final';
     else if (summary.includes('Loser SF')) groupName = 'Tercer Puesto';
@@ -209,49 +213,50 @@ const parseICS = (icsString) => {
     const dateObj = new Date(Date.UTC(year, month - 1, day, hour, min, sec));
     if (isNaN(dateObj.getTime())) return null;
 
+    let finalHomeScore = homeScore;
+    let finalAwayScore = awayScore;
+    let finalUrl = ''; // Ya no usamos ev.url de FotMob
+    let isLive = false;
+    let minute = '';
+
+    if (overrides[matchKey]) {
+      if (overrides[matchKey].homeScore !== undefined && overrides[matchKey].homeScore !== null && overrides[matchKey].homeScore !== '') finalHomeScore = parseInt(overrides[matchKey].homeScore, 10);
+      if (overrides[matchKey].awayScore !== undefined && overrides[matchKey].awayScore !== null && overrides[matchKey].awayScore !== '') finalAwayScore = parseInt(overrides[matchKey].awayScore, 10);
+      if (overrides[matchKey].matchUrl) finalUrl = overrides[matchKey].matchUrl;
+      if (overrides[matchKey].isLive !== undefined) isLive = overrides[matchKey].isLive;
+      if (overrides[matchKey].minute !== undefined) minute = overrides[matchKey].minute;
+    }
+
     return {
-      id: index + 1,
-      isLive: false,
-      status: 'NS', // Not Started
-      minute: 0,
+      id: matchKey,
+      isLive: isLive,
+      status: isLive ? 'LIVE' : 'NS', // Not Started o LIVE
+      minute: minute,
       time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       dateStr: dateObj.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }),
       group: groupName,
       stadium: getStadium(homeName, awayName, summary),
       homeTeam: { name: homeName, flag: getFlagUrl(homeName) },
       awayTeam: { name: awayName, flag: getFlagUrl(awayName) },
-      homeScore: homeScore,
-      awayScore: awayScore,
+      homeScore: finalHomeScore,
+      awayScore: finalAwayScore,
       rawDate: dateObj.toISOString(),
-      matchUrl: ev.url || '#'
+      matchUrl: finalUrl
     };
   }).filter(Boolean); // Filtra partidos corruptos
 };
 
 // FUNCIÓN INTELIGENTE PARA DESCARGAR EL CALENDARIO EN VIVO
 const getCalendarData = async () => {
-  // MODO DE PRUEBA: Cambia a "false" cuando empiece el mundial para usar datos de internet
-  const TEST_MODE = false;
-  if (TEST_MODE) {
-    console.warn("Modo de prueba activado: Usando el calendario local manual.");
-    return parseICS(rawICS);
+  let overrides = {};
+  try {
+    const res = await fetch('/get_overrides.php');
+    if (res.ok) overrides = await res.json();
+  } catch (error) {
+    console.warn("No se pudo conectar a la base de datos de modificaciones.");
   }
 
-  try {
-    // Enlace público del calendario (A modo de ejemplo usamos una URL simulada de FotMob)
-    // Cuando el mundial esté cerca, puedes poner el enlace ICS oficial aquí.
-    const ICS_URL = 'https://www.fotmob.com/api/ical?id=77';
-    
-    // Usamos corsproxy.io para saltarnos el bloqueo de CORS de manera gratuita
-    const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(ICS_URL)}`);
-    if (!response.ok) throw new Error('Error al descargar el calendario en vivo');
-    
-    const liveText = await response.text();
-    return parseICS(liveText);
-  } catch (error) {
-    console.warn("Usando calendario local (manual) como respaldo por fallo en la red.");
-    return parseICS(rawICS);
-  }
+  return parseICS(rawICS, overrides);
 };
 
 // LÓGICA EXPORTADA

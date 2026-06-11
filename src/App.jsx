@@ -6,6 +6,7 @@ import RightColumn from '../RightColumn';
 import Groups from './Groups';
 import Results from './Results';
 import Fixture from './Fixture';
+import AdminPanel from './AdminPanel';
 
 function App() {
   const [activeTab, setActiveTab] = useState('calendario');
@@ -20,6 +21,11 @@ function App() {
     }
     setIsPlaying(!isPlaying);
   };
+
+  // Interceptar la ruta /admin antes de renderizar la app principal
+  if (window.location.pathname === '/admin') {
+    return <AdminPanel />;
+  }
 
   return (
     <div className="bg-surface-bright text-on-surface font-body-md min-h-screen flex flex-col pb-20">

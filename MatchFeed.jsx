@@ -67,10 +67,21 @@ export default function MatchFeed() {
               <div key={groupName} className="flex flex-col gap-4">
                 <h4 className="font-label-caps text-label-caps text-primary uppercase border-b border-surface-variant pb-2">{groupName}</h4>
                 <div className="grid grid-cols-1 gap-4">
-                  {groupMatches.map((match) => (
-                    <div key={match.id} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding relative overflow-hidden group hover:border-primary-container transition-colors shadow-[0_0_15px_rgba(193,53,53,0.1)]">
-                      <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 rounded-bl-lg font-stat-value text-stat-value text-xs">
-                        {match.time}
+                  {groupMatches.map((match) => {
+                    let badgeClasses = 'bg-primary text-on-primary';
+                    let badgeText = match.time;
+                    if (match.status === 'LIVE') {
+                      badgeClasses = 'bg-live-indicator text-white live-pulse';
+                      badgeText = match.minute ? `${match.minute}' EN VIVO` : 'EN VIVO';
+                    } else if (match.status === 'FT') {
+                      badgeClasses = 'bg-surface-variant text-on-surface-variant';
+                      badgeText = 'FINALIZADO';
+                    }
+                    
+                    return (
+                    <div key={match.id} className={`bg-surface-container-lowest border ${match.status === 'LIVE' ? 'border-live-indicator shadow-[0_0_15px_rgba(193,53,53,0.2)]' : 'border-outline-variant hover:border-primary-container shadow-[0_0_15px_rgba(193,53,53,0.1)]'} rounded-xl p-card-padding relative overflow-hidden group transition-colors`}>
+                      <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-lg font-stat-value text-stat-value text-xs ${badgeClasses}`}>
+                        {badgeText}
                       </div>
                       <div className="font-label-caps text-label-caps text-on-surface-variant mb-4 pr-12 truncate">{match.stadium}</div>
                       <div className="flex flex-col gap-3">
@@ -94,11 +105,15 @@ export default function MatchFeed() {
                         </div>
                       </div>
                       <div className="mt-4 pt-4 border-t border-surface-variant flex justify-between items-center">
-                        <a href={match.matchUrl} target="_blank" rel="noopener noreferrer" className="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">Ver Detalles</a>
+                        {match.matchUrl ? (
+                          <a href={match.matchUrl} target="_blank" rel="noopener noreferrer" className="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">Ver Detalles</a>
+                        ) : (
+                          <span className="font-label-caps text-label-caps text-on-surface-variant opacity-50">Transmisión por anunciar</span>
+                        )}
                         <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>sports_soccer</span>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
             ))
